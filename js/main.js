@@ -92,25 +92,25 @@ var menuState = function(game){
 var mainState = function(game){
   var group, player, effect, point;
 
-  var moving; // 用于记录tween动画状态
-  var holding;  // 用于记录鼠标按下状态
-  var holdTime; // 用于记录鼠标按下时间
+  var moving; 
+  var holding;  
+  var holdTime; 
 
-  this.pArr = [17,15,12,10,15,13,8,17]; // 各种类型平台宽度，与平台spritesheet各帧对应
+  this.pArr = [17,15,12,10,15,13,8,17]; //spritesheet
   this.init = function(){
 
     moving = true;
     holding = false;
     holdTime = 0;
 
-    this.lastX = 40;// 最后一次的距离、方向、平台类型
+    this.lastX = 40;
     this.lastY = 20;
     this.lastD = 1;
     this.lastP = 0;
 
     this.bonus = 0;
-    this.playerStyle = this.game.playerStyle; // 角色样式，对应帧号
-    this.items = {txt:[null,null,null],val:[0,3,3]}; // 游戏数据在一个对象中保存：[分数，生命，瞄准器]
+    this.playerStyle = this.game.playerStyle; 
+    this.items = {txt:[null,null,null],val:[0,3,3]}; 
   };
   this.create = function(){
     var back = this.game.add.sprite(0,0,"back");
@@ -133,29 +133,29 @@ var mainState = function(game){
     group = this.game.add.group();
     this.plate1 = group.create(this.world.centerX-this.lastX, this.world.centerY+this.lastY, "plate", 0);
     this.plate1.anchor.set(0.5,0.4);
-    // 连环tween
+    // tween
     this.game.add.tween(this.plate1).from({y:this.plate1.y-50,alpha:0},200,"Linear",true).onComplete.add(function(){
       this.plate2 = group.create(this.world.centerX+this.lastX, this.world.centerY-this.lastY, "plate", 0);
       this.plate2.anchor.set(0.5,0.4);
       this.plate2.sendToBack();
       this.game.add.tween(this.plate2).from({y:this.plate2.y-50,alpha:0},200,"Linear",true).onComplete.add(function(){
-        // 光效
+        
         effect = group.create(0, 0, "button", 6); 
         effect.anchor.set(0.5);
-        effect.visible = false; // 与平台共一个组，只用visible控制显示或隐藏，用kill的话会被拿去做平台
+        effect.visible = false; // visible
 
-        // 瞄准器
+        
         point = group.create(0, 0, "button", 7); 
         point.anchor.set(0.5);
         point.scale.set(0.5);
-        point.visible = false; // 与平台共一个组，只用visible控制显示或隐藏，用kill的话会被拿去做平台
+        point.visible = false; // visible
 
         player = group.create(this.world.centerX-this.lastX, this.world.centerY+this.lastY);
-        // 身体
+        
         player.b = player.addChild(this.game.add.sprite(0, 0, "player", this.playerStyle));
         player.b.anchor.set(0.5,0.875);
         player.b.animations.add("delay",[this.playerStyle],10,false);
-        // 加分提示文本
+        
         player.txt = player.addChild(this.game.add.text(0, -30, "", {fontSize:"16px", fill:"#fff"}));
         player.txt.anchor.set(0.5);
 
@@ -186,8 +186,8 @@ var mainState = function(game){
     this.game.input.onUp.add(this._jump,this);
   };
   this.update = function(){
-    if(holding){ // 储力效果，简单的缩短
-      var power = Math.min(Math.floor((this.game.time.now - holdTime) / 16), 250); // 计算力度，限制数值最大为250
+    if(holding){ 
+      var power = Math.min(Math.floor((this.game.time.now - holdTime) / 16), 250); //250
       player.scale.y = 1 - (power>100 ? 0.3 : 0.3 * power / 100);
       if(this.items.val[2]>0){
         var tarX = this.world.centerX-this.lastX+this.lastD*power*2;
@@ -207,20 +207,20 @@ var mainState = function(game){
       holding = false;
       player.scale.y = 1;
       point.visible = false;
-      var power = Math.min(Math.floor((this.game.time.now - holdTime) / 16), 250); // 计算力度，限制数值最大为250
+      var power = Math.min(Math.floor((this.game.time.now - holdTime) / 16), 250); // 250
       var jumpX = this.world.centerX-this.lastX+this.lastD*power*2;
       var jumpY = this.world.centerY+this.lastY-power;
-      // *** 跳跃效果 ***
-      var jumpTime = 300; // 跳跃动作时长
-      // 外壳直线位移至目的地
+      
+      var jumpTime = 300; 
+      // 
       this.game.add.tween(player).to({x:jumpX, y:jumpY},jumpTime,"Linear",true).onComplete.add(function(obj){
         if(this._checkScore()){
-          obj.b.animations.play("delay",10).onComplete.addOnce(this._newPlate,this); // 这里用帧动画实现停顿效果（帧速10代表停顿十分之一秒）
+          obj.b.animations.play("delay",10).onComplete.addOnce(this._newPlate,this); 
         }else{
           obj.b.animations.play("delay",10).onComplete.addOnce(this._fall,this);
         }
       },this);
-      // 身体只做跳跃动作即可
+      
       player.b.y = -40; 
       player.b.angle = -this.lastD * 150;
       this.game.add.tween(player.b).to({angle:-this.lastD*90, x:this.lastD*20, y:-80}, jumpTime/2, Phaser.Easing.Quadratic.Out, false).to({angle:0,x:0,y:0},jumpTime/2,Phaser.Easing.Quadratic.In,true);
@@ -228,17 +228,17 @@ var mainState = function(game){
     }
   };
   this._checkScore = function(){
-    // 检测是否跳中目标，比较player和plate2的位置，返回true或false，同时播放得分提示和光效
+    
     if(this.items.val[2]>0){
       this._setItem(2,-1);
     }
-    if(Math.abs(player.x-this.plate2.x)<=this.pArr[this.lastP]){   // 跳中位置...
+    if(Math.abs(player.x-this.plate2.x)<=this.pArr[this.lastP]){   
       if(this.plate2.item && this.plate2.item.alive){
         this._setItem(this.plate2.itemID,1);
         this.plate2.item.kill();
       }
       var addScore = 1;
-      if(Math.abs(player.x-this.plate2.x)<=3){ // 3像素以内，以2分递增，播放光效
+      if(Math.abs(player.x-this.plate2.x)<=3){
         this.bonus += 2; 
         addScore = this.bonus;
         effect.reset(this.plate2.x,this.plate2.y);
@@ -251,7 +251,7 @@ var mainState = function(game){
         this.bonus = 0;
       }
       this._setItem(0,addScore);
-      // 加分效果
+      
       player.txt.reset(0,-30);
       player.txt.text = addScore; 
       player.txt.alpha = 1; 
@@ -265,8 +265,8 @@ var mainState = function(game){
     player.sendToBack();
     if(player.y>this.plate2.y){this.plate2.sendToBack();}
 
-    if(Math.abs(player.x-this.plate2.x)-this.pArr[this.lastP] < 12){  // 碰到部分,倾斜（12为player身体的半宽）
-      player.angle = (player.y<this.plate2.y && this.lastD>0) || (player.y>this.plate2.y && this.lastD<0) ? 30 : -30;  // 左倾斜或是右倾斜
+    if(Math.abs(player.x-this.plate2.x)-this.pArr[this.lastP] < 12){  
+      player.angle = (player.y<this.plate2.y && this.lastD>0) || (player.y>this.plate2.y && this.lastD<0) ? 30 : -30;  
     }
     this.game.add.tween(player).to({y:player.y+100,alpha:0},500,"Linear",true).onComplete.add(function(){
       this._setItem(1,-1);
@@ -285,15 +285,15 @@ var mainState = function(game){
   };
   this._newPlate = function(sprite,anim){
     moving = false;
-    var newRange = this.game.rnd.integerInRange(10, 50); // 随机生成一个距离
-    var newD = this.game.rnd.sign();   // 随机方向（-1:左，1:右）
-    var newX = newD * newRange*2;    // 计算新平台的相对于上一个平台的X位置
-    var newY = newRange;           // 计算新平台的相对于上一个平台的Y位置
-    this.lastP = this.game.rnd.between(0,7); // 随机平台类型（对应平台的spritesheet中随机一个帧）
+    var newRange = this.game.rnd.integerInRange(10, 50); 
+    var newD = this.game.rnd.sign();   
+    var newX = newD * newRange*2;    
+    var newY = newRange;           
+    this.lastP = this.game.rnd.between(0,7); 
     this.plate2 = group.getFirstDead(true, this.world.centerX+this.lastX+newX*2, this.world.centerY-this.lastY-newY*2, "plate", this.lastP);
     this.plate2.anchor.set(0.5,0.4);
     this.plate2.sendToBack();
-    // 随机产生道具
+    
     if(this.game.rnd.integerInRange(0,10)>6){
       if(this.plate2.item){
         this.plate2.item.reset(0,0);
@@ -309,7 +309,7 @@ var mainState = function(game){
       }
     }
     this.game.add.tween(this.plate2).from({alpha:0},200,"Linear",true);
-    group.forEachAlive(this._tween,this,newX,newY); // 整体往后移
+    group.forEachAlive(this._tween,this,newX,newY); 
     this.lastX=newX;
     this.lastY=newY;
     this.lastD=newD;
